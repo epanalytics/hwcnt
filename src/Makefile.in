@@ -1,0 +1,27 @@
+CC         = @CC@
+CXX        = @CXX@
+HWCNT_DIR  = @abs_top_builddir@
+CFLAGS     = -g -Wall -O2 -fPIC
+LDFLAGS    = -shared -Wl,--unresolved-symbols=ignore-all
+INCLUDES   = -I$(HWCNT_DIR)/include @PAPI_INCLUDE@
+OBJS       = hwcnt.o hwcnt_c.o
+
+TGT        = libhwcnt.so
+
+.PHONY: all default clean
+
+default: all
+all: $(TGT)
+	cp $(TGT) ../lib
+
+%.o: %.cpp
+	$(CXX) $(CFLAGS) $(INCLUDES) -c $< 
+
+$(TGT): $(OBJS)
+	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+clean:
+	rm -f $(OBJS) $(TGT)
+
+dist-clean: clean
+	for t in $(TGT) ; do rm -f ../lib/$(t) ; done

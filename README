@@ -1,0 +1,147 @@
+The hwcnt package is a simple API designed to simplify common hardware event
+counting tasks. It is easily set up, providing a simple interface for setting up
+which events are to be counted and several useful event collection models such
+as collecting events only for a particular process or for all CPUs on the 
+system.
+
+
+================================================================================
+installation
+================================================================================
+================================================================================
+The only non-trivial dependency is on the papi package. papi may be available on
+your system's package manager (e.g., libpapi-dev on Ubuntu), or you may need to
+download and build it manually. It is difficult to encapsulate all possible
+install procedures, but here are detailed instructions for a few common cases.
+
+Install steps using package install on Ubuntu:
+================================================================================
+$ sudo apt-get install libpapi-dev
+$ cd /path/to/hwcnt
+$ ./configure
+$ make
+
+Install steps using root-installed papi package:
+================================================================================
+$ wget http://icl.cs.utk.edu/projects/papi/downloads/papi-5.4.1.tar.gz
+$ tar xf papi-5.4.1.tar.gz
+$ cd papi-5.4.1/src
+$ ./configure
+$ make 
+$ sudo make install
+$ cd /path/to/hwcnt
+$ ./configure
+$ make
+
+Install steps using locally built papi package:
+================================================================================
+$ wget http://icl.cs.utk.edu/projects/papi/downloads/papi-5.4.1.tar.gz
+$ tar xf papi-5.4.1.tar.gz
+$ cd papi-5.4.1/src
+$ ./configure
+$ make
+$ cd /path/to/hwcnt
+$ papidir=/path/to/papi-5.4.1; ./configure \
+  --with-papi-include=${papidir}/src --with-papi-lib=${papidir}/src \
+  --with-papi-bin=${papidir}/src/utils
+$ make
+
+
+================================================================================
+getting started
+================================================================================
+a fairly flexible command line tool using the key features of hwcnt can be
+found in exampes/hwcnt-stat.cpp. This tool also installs into bin/ when building
+the package
+
+examples/c_test.c shows how to count events for all CPUs using the C interface
+
+examples/cpp_test.cpp shows how to count events for a process and its children
+using the C++ interface
+
+Some helpful environment configuration is done by env/bashrc:
+$ source env/bashrc
+
+
+================================================================================
+C and C++ interfaces
+================================================================================
+================================================================================
+hwcnt has C and C++ interfaces providing the same functionality. The core of
+hwcnt is implemented in C++, and the C interface is simply a thin layer sitting
+on top of the C++ API.
+
+Documentation takes the form of this README as well as detailed descriptions of
+the interface functions in include/hwcnt.hpp
+
+================================================================================
+available events
+================================================================================
+================================================================================
+To get details of supported events on your platform, try one of the following:
+$ papi_avail
+$ papi_native_avail
+
+
+================================================================================
+event compatibility
+================================================================================
+================================================================================
+Only certain events can be collected by the hardware simultaneously. To 
+determine if events can work together, use papi_event_chooser. An example:
+$ papi_event_chooser PRESET PAPI_TOT_INS PAPI_TOT_CYC PAPI_FP_OPS
+
+
+================================================================================
+CPU mode
+================================================================================
+================================================================================
+CPU mode collects events on all CPUs.
+
+You need run as root or enable non-paranoid event counting for CPU mode:
+$ echo 0 | sudo tee /proc/sys/kernel/perf_event_paranoid
+
+See examples/c_test.c for an example of how to use CPU mode
+
+
+================================================================================
+process mode
+================================================================================
+================================================================================
+Process mode collects events for a particular process.
+
+To collect events for a process and all of its children processes/threads, set
+the inherit flag to true/1 when initializing the hwcnt object.
+
+An example of process mode is shown in examples/cpp_test.cpp
+
+
+================================================================================
+event multiplexing
+================================================================================
+================================================================================
+Multiplexing allows you to count more events than are physically supported by
+the hardware by time-sharing the physical counters.
+
+To enable multiplexing, set the multiplex flag to true/1 when initializing the
+hwcnt object.
+
+An example of multiplexing is shown in examples/c_test.c
+
+
+================================================================================
+common problems
+================================================================================
+================================================================================
+Q: I get the following error when trying to run hwcnt-stat:
+   error while loading shared libraries: libhwcnt.so: cannot open shared object\
+   file: No such file or directory
+A: Set up your environment correctly. See env/bashrc for an example
+
+Q: I get the following error when trying to run hwcnt-stat:
+   error: PAPI_add_event failed with code -7 (Event does not exist)
+A: Use papi_avail and papi_native_avail to be sure that event is supported on
+   your platform
+Q: I did. And it still doesn't work!
+A: Sometimes the shared library version of PAPI is problematic. Try to configure
+   hwcnt with --disable-papi-shared, rebuild, and try again

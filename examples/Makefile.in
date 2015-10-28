@@ -1,0 +1,34 @@
+CC         = @CC@
+CXX        = @CXX@
+CFLAGS     = -g -Wall -O2 @CLTOOLS_DEFS@
+HWCNT_DIR  = @abs_top_builddir@
+INCLUDES   = -I$(HWCNT_DIR)/include
+LDFLAGS    = -L$(HWCNT_DIR)/lib -lhwcnt @PAPI_LD_FLAGS@
+TGT        = cpp_test c_test hwcnt-stat
+OBJS       = $(foreach var,$(TGT),$(var).o)
+
+.PHONY: all default install clean
+
+default: all install
+all: $(TGT)
+
+%.o: %.cpp
+	$(CXX) $(CFLAGS) $(INCLUDES) -c $<
+
+%.o: %.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $<
+
+hwcnt-stat: hwcnt-stat.o
+	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+cpp_test: cpp_test.o
+	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+c_test: c_test.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+install: 
+	cp hwcnt-stat ../bin
+
+clean:
+	rm -f $(OBJS) $(TGT)

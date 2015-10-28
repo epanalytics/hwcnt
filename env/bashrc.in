@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+hwcntdir="@abs_top_builddir@"
+export HWCNT_ROOT=$hwcntdir
+export PAPI_BIN="@PAPI_BIN_PATH@"
+export PAPI_LIB="@PAPI_LIB_PATH@"
+echo "***** initializing environment using HWCNT_ROOT=$HWCNT_ROOT"
+export LD_LIBRARY_PATH=${HWCNT_ROOT}/lib:${PAPI_LIB}:${LD_LIBRARY_PATH}
+export PATH=${HWCNT_ROOT}/bin:${PAPI_BIN}:${PATH}
